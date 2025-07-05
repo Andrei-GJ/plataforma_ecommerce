@@ -7,7 +7,7 @@ import { Facebook, Twitter, Linkedin, ArrowUp } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-50">
+    <footer className="bg-gray-50 mb-10">
       {/* Header message */}
       <div className="text-center mb-12 bg-gray-500 py-4 ">
         <p className="text-white">
@@ -58,31 +58,31 @@ const Footer = () => {
 
           {/* Shop Column */}
           <div className="lg:col-span-1">
-            <h4 className="font-semibold text-gray-900 mb-4">Shop</h4>
+            <h4 className="font-semibold text-gray-900 mb-4">Tienda</h4>
             <ul className="space-y-3 text-gray-600">
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Gift cards
+                  Tarjetas de regalo
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Site map
+                  Mapa del sitio
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Polka blog
+                  Blog
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Login
+                  Iniciar sesión
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Sign in
+                  Crear cuenta
                 </a>
               </li>
             </ul>
@@ -90,26 +90,26 @@ const Footer = () => {
 
           {/* Sell Column */}
           <div className="lg:col-span-1">
-            <h4 className="font-semibold text-gray-900 mb-4">Sell</h4>
+            <h4 className="font-semibold text-gray-900 mb-4">Vender</h4>
             <ul className="space-y-3 text-gray-600">
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Sell on Polka
+                  Vender
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Teams
+                  Equipos
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Forums
+                  Foros
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Affiliates
+                  Afiliados
                 </a>
               </li>
             </ul>
@@ -117,31 +117,31 @@ const Footer = () => {
 
           {/* About Column */}
           <div className="lg:col-span-1">
-            <h4 className="font-semibold text-gray-900 mb-4">About</h4>
+            <h4 className="font-semibold text-gray-900 mb-4">Sobre nosotros</h4>
             <ul className="space-y-3 text-gray-600">
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Polka, Inc.
+                  Cositas pa Sumercé
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Policies
+                  Politicas
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Investors
+                  Inversores
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Careers
+                  Empleo
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Press
+                  Prensa
                 </a>
               </li>
             </ul>
@@ -149,21 +149,21 @@ const Footer = () => {
 
           {/* Help Column */}
           <div className="lg:col-span-1">
-            <h4 className="font-semibold text-gray-900 mb-4">Help</h4>
+            <h4 className="font-semibold text-gray-900 mb-4">Ayuda</h4>
             <ul className="space-y-3 text-gray-600">
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Help Center
+                  Centro de ayuda
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Trust and safety
+                  Confianza y seguridad{" "}
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-gray-900 transition-colors">
-                  Privacy settings
+                  Politicas de privacidad{" "}
                 </a>
               </li>
             </ul>
@@ -178,10 +178,7 @@ const Footer = () => {
               <a href="#" className="hover:text-gray-900 transition-colors">
                 Politicas de privacidad
               </a>
-              <a
-                href="#"
-                className="text-orange-500 hover:text-orange-600 transition-colors"
-              >
+              <a href="#" className="hover:text-gray-900 transition-colors">
                 Términos de uso
               </a>
               <a href="#" className="hover:text-gray-900 transition-colors">

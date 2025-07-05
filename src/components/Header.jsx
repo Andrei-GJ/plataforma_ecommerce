@@ -101,12 +101,14 @@ const Header = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-4 py-2.5 pr-12 rounded-r-full border border-white focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-transparent bg-white shadow-sm text-sm placeholder-gray-500"
                 />
+                <Link href="/products">
                 <button
                   type="submit"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-1.5 hover:bg-gray-200 transition-colors duration-200"
                 >
                   <Search className="w-4 h-4" />
                 </button>
+                </Link>
               </div>
             </form>
           </div>
