@@ -77,7 +77,7 @@ const ProductCarousel = () => {
     <div className="max-w-300 mx-auto py-8 mt-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-xl font-normal text-gray-800">
+        <h2 className="text-xl font-bold text-black">
           Descubra artículos únicos seleccionados para ti
         </h2>
         <button className="text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1">

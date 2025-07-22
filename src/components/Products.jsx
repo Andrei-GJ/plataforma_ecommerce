@@ -1,9 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Heart, ChevronDown, ChevronRight, ShoppingCart } from "lucide-react";
 
 const MiscellaneousStoreInterface = () => {
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
     price: true,
@@ -20,6 +24,7 @@ const MiscellaneousStoreInterface = () => {
   });
 
   const [priceRange, setPriceRange] = useState([5, 200]);
+  const [products, setProducts] = useState([]);
 
   const toggleSection = (section) => {
     setExpandedSections((prev) => ({
@@ -28,116 +33,24 @@ const MiscellaneousStoreInterface = () => {
     }));
   };
 
-  const products = [
-    {
-      id: 1,
-      name: "Detergente Líquido Ariel",
-      brand: "Ariel",
-      price: 45.0,
-      category: "Limpieza",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-blue-100",
-    },
-    {
-      id: 2,
-      name: "Papel Higiénico Suave",
-      brand: "Scott",
-      price: 28.0,
-      category: "Hogar",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-white",
-    },
-    {
-      id: 3,
-      name: "Galletas Oreo Original",
-      brand: "Nabisco",
-      price: 35.0,
-      category: "Snacks",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-purple-100",
-    },
-    {
-      id: 4,
-      name: "Shampoo Herbal Essences",
-      brand: "Herbal Essences",
-      price: 52.0,
-      category: "Cuidado Personal",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-green-100",
-    },
-    {
-      id: 5,
-      name: "Refresco Coca Cola 600ml",
-      brand: "Coca Cola",
-      price: 18.0,
-      category: "Bebidas",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-red-100",
-    },
-    {
-      id: 6,
-      name: "Pasta de Dientes Colgate",
-      brand: "Colgate",
-      price: 25.0,
-      category: "Cuidado Personal",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-blue-50",
-    },
-    {
-      id: 7,
-      name: "Pilas AA Duracell",
-      brand: "Duracell",
-      price: 65.0,
-      category: "Electrónicos",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-yellow-100",
-    },
-    {
-      id: 8,
-      name: "Aceite de Cocina Capullo",
-      brand: "Capullo",
-      price: 42.0,
-      category: "Despensa",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-yellow-50",
-    },
-    {
-      id: 9,
-      name: "Jabón de Tocador Dove",
-      brand: "Dove",
-      price: 15.0,
-      category: "Cuidado Personal",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-pink-50",
-    },
-    {
-      id: 10,
-      name: "Cuaderno Universitario",
-      brand: "Norma",
-      price: 12.0,
-      category: "Papelería",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-orange-100",
-    },
-    {
-      id: 11,
-      name: "Cereal Zucaritas Kellogg's",
-      brand: "Kellogg's",
-      price: 68.0,
-      category: "Desayuno",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-orange-200",
-    },
-    {
-      id: 12,
-      name: "Desodorante Rexona",
-      brand: "Rexona",
-      price: 38.0,
-      category: "Cuidado Personal",
-      image: "/api/placeholder/300/400",
-      bgColor: "bg-gray-100",
-    },
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(
+          "https://back-ecomerce-vz7f.onrender.com/all_products"
+        );
+        if (!response.ok) throw new Error("Error al obtener los productos");
+        const data = await response.json();
+        setProducts(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const FilterSection = ({ title, isExpanded, onToggle, children }) => (
     <div className="border-b border-gray-200 py-4">

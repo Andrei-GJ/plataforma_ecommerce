@@ -6,10 +6,15 @@ import logo from "../app/cositaslogo.png";
 import React, { use, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Search, User, ShoppingBag } from "lucide-react";
+import FloatingLogin from "./Login";
 
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showLogin, setShowLogin] = useState(false);
+
+  const onOpenLogin = () => setShowLogin(true);
+  const onCloseLogin = () => setShowLogin(false);
 
   // Categorías para el dropdown
   const categories = [
@@ -102,27 +107,29 @@ const Header = () => {
                   className="w-full px-4 py-2.5 pr-12 rounded-r-full border border-white focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-transparent bg-white shadow-sm text-sm placeholder-gray-500"
                 />
                 <Link href="/products">
-                <button
-                  type="submit"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-1.5 hover:bg-gray-200 transition-colors duration-200"
-                >
-                  <Search className="w-4 h-4" />
-                </button>
+                  <button
+                    type="submit"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-1.5 hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    <Search className="w-4 h-4" />
+                  </button>
                 </Link>
               </div>
             </form>
           </div>
 
           {/* Right section - User actions */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4">
             {/* Account */}
-            <Link
-              href="/login"
-              className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors duration-200"
+            <button
+              onClick={onOpenLogin}
+              className="bg-blue-700 hover:bg-blue-900 text-white font-medium py-2.5 px-6 rounded-full shadow-lg hover:shadow-xl"
             >
-              <User className="w-5 h-5" />
-              <span className="font-medium text-sm">Cuenta</span>
-            </Link>
+              Iniciar sesión
+            </button>
+
+            {/* Modal de login */}
+            <FloatingLogin isOpen={showLogin} onClose={onCloseLogin} />
 
             {/* Cart */}
             <Link
@@ -133,7 +140,7 @@ const Header = () => {
                 <ShoppingBag className="w-5 h-5" />
                 {/* Cart count badge */}
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                  16
+                  0
                 </span>
               </div>
               <span className="font-medium text-sm">Carrito</span>
