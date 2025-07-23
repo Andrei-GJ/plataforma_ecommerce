@@ -2,18 +2,20 @@
 
 import React, { useState, useEffect } from "react";
 import { Heart, ChevronDown, ChevronRight, ShoppingCart } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 const MiscellaneousStoreInterface = () => {
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const searchParams = useSearchParams();
+  const category_id = searchParams.get("category_id");
 
   const [expandedSections, setExpandedSections] = useState({
-    categories: true,
-    price: true,
-    brands: true,
-    location: true,
-    condition: true,
+    categories: false,
+    price: false,
+    brands: false,
+    location: false,
+    condition: false,
   });
 
   const [selectedFilters, setSelectedFilters] = useState({
@@ -22,6 +24,26 @@ const MiscellaneousStoreInterface = () => {
     locations: [],
     conditions: [],
   });
+
+  const categoryNames = {
+    1: "Papelería",
+    2: "Piñatería",
+    3: "Juguetería",
+    4: "Termos & Mugs",
+    5: "Cuidado Personal",
+    6: "Libros",
+    7: "Deporte & Recreación",
+  };
+
+  const categoryColors = {
+    1: "bg-yellow-100 text-yellow-800",
+    2: "bg-pink-100 text-pink-800",
+    3: "bg-green-100 text-green-800",
+    4: "bg-purple-100 text-purple-800",
+    5: "bg-red-100 text-red-800",
+    6: "bg-blue-100 text-blue-800",
+    7: "bg-indigo-100 text-indigo-800",
+  };
 
   const [priceRange, setPriceRange] = useState([5, 200]);
   const [products, setProducts] = useState([]);
@@ -41,7 +63,15 @@ const MiscellaneousStoreInterface = () => {
         );
         if (!response.ok) throw new Error("Error al obtener los productos");
         const data = await response.json();
-        setProducts(data);
+
+        // Verifica si data es un arreglo o tiene una propiedad tipo arreglo
+        const productList = Array.isArray(data)
+          ? data
+          : Array.isArray(data.products)
+          ? data.products
+          : [];
+
+        setProducts(productList);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -69,26 +99,24 @@ const MiscellaneousStoreInterface = () => {
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <div className="w-64 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold mb-6 text-blue-800">Filtros</h2>
+        <h2 className="text-xl font-semibold text-blue-800">Filtros</h2>
 
         {/* Categories */}
         <FilterSection
           title="Categorías"
+          className="text-xl font-bold text-blue-800"
           isExpanded={expandedSections.categories}
           onToggle={() => toggleSection("categories")}
         >
           <div className="space-y-2">
             {[
-              "Limpieza",
-              "Cuidado Personal",
-              "Despensa",
-              "Bebidas",
-              "Snacks",
-              "Hogar",
               "Papelería",
-              "Electrónicos",
-              "Desayuno",
-              "Medicamentos",
+              "Piñateria",
+              "Juguetería",
+              "Termos & Mugs",
+              "Cuidado Personal",
+              "Libros",
+              "Deporte & Recreación",
             ].map((category) => (
               <div key={category} className="flex items-center">
                 <input type="checkbox" className="mr-2 text-blue-600" />
@@ -113,16 +141,6 @@ const MiscellaneousStoreInterface = () => {
                 value={priceRange[0]}
                 onChange={(e) =>
                   setPriceRange([parseInt(e.target.value), priceRange[1]])
-                }
-                className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <input
-                type="range"
-                min="5"
-                max="200"
-                value={priceRange[1]}
-                onChange={(e) =>
-                  setPriceRange([priceRange[0], parseInt(e.target.value)])
                 }
                 className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer"
               />
@@ -161,30 +179,6 @@ const MiscellaneousStoreInterface = () => {
           </div>
         </FilterSection>
 
-        {/* Location in Store */}
-        <FilterSection
-          title="Ubicación en Tienda"
-          isExpanded={expandedSections.location}
-          onToggle={() => toggleSection("location")}
-        >
-          <div className="space-y-2">
-            {[
-              "Entrada",
-              "Pasillo 1",
-              "Pasillo 2",
-              "Refrigerados",
-              "Caja",
-              "Farmacia",
-              "Mostrador",
-            ].map((location) => (
-              <div key={location} className="flex items-center">
-                <input type="checkbox" className="mr-2 text-blue-600" />
-                <span className="text-sm text-gray-700">{location}</span>
-              </div>
-            ))}
-          </div>
-        </FilterSection>
-
         {/* Condition */}
         <FilterSection
           title="Estado"
@@ -210,64 +204,55 @@ const MiscellaneousStoreInterface = () => {
 
       {/* Main Content */}
       <div className="flex-1 p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <button className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1 rounded-full border">
-              Más Vendidos
-            </button>
-            <button className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-full bg-blue-100">
-              Ofertas
-            </button>
-            <button className="text-sm text-gray-600 hover:text-gray-900 px-3 py-1 rounded-full border">
-              Precio: Menor a Mayor
-            </button>
-          </div>
-        </div>
-
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow border"
-            >
+          {Array.isArray(products) &&
+            products.map((product) => (
               <div
-                className={`relative ${product.bgColor} h-56 flex items-center justify-center`}
+                key={product.id}
+                className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow border"
               >
-                <button className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-sm hover:shadow-md">
-                  <Heart
-                    size={16}
-                    className="text-gray-400 hover:text-red-500"
-                  />
-                </button>
-                <div className="w-28 h-28 bg-gray-300 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-xs text-center">
-                    Imagen
-                    <br />
-                    Producto
-                  </span>
-                </div>
-                <div className="absolute top-3 left-3 bg-blue-500 text-white px-2 py-1 rounded text-xs">
-                  {product.category}
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-1 text-sm">
-                  {product.name}
-                </h3>
-                <p className="text-xs text-gray-500 mb-2">{product.brand}</p>
-                <div className="flex items-center justify-between">
-                  <p className="text-lg font-bold text-green-600">
-                    ${product.price.toFixed(2)}
-                  </p>
-                  <button className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors">
-                    <ShoppingCart size={16} />
+                <div
+                  className={`relative ${product.bgColor} h-56 flex items-center justify-center`}
+                >
+                  <button className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-sm hover:shadow-md">
+                    <Heart
+                      size={16}
+                      className="text-gray-400 hover:text-red-500"
+                    />
                   </button>
+                  <div className="w-28 h-28 bg-gray-300 rounded-lg flex items-center justify-center">
+                    <span className="text-gray-600 text-xs text-center">
+                      Imagen
+                      <br />
+                      Producto
+                    </span>
+                  </div>
+                  <div
+                    className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs ${
+                      categoryColors[product.category_id] ||
+                      "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {" "}
+                    {categoryNames[product.category_id] || "Sin categoría"}
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold capitalize text-gray-900 text-sm">
+                    {product.name_product}{" "}
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <p className="text-lg font-bold text-blue-600">
+                      ${product.price.toFixed(2)}
+                    </p>
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors">
+                      <ShoppingCart size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </div>

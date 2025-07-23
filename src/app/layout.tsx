@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cositas pa' Sumercé",
+  title: "Cositas pa' Sumercé | Tienda virtual",
   description:
     "Plataforma de E-commerce para Cositas pa' Sumercé, tan colombiano como usted",
 };

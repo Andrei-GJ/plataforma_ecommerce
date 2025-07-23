@@ -18,14 +18,14 @@ const Header = () => {
 
   // Categorías para el dropdown
   const categories = [
-    { name: "Papelería", route: "/clothing-shoes" },
-    { name: "Piñateria", route: "/home-living" },
-    { name: "Juguetería", route: "/wedding-party" },
-    { name: "Termos & Mugs", route: "/art-collectibles" },
-    { name: "Ofertas", route: "/craft-supplies" },
-    { name: "Cuidado Personal", route: "/electronics" },
-    { name: "Libros", route: "/books-media" },
-    { name: "Deporte & recreación", route: "/sports-recreation" },
+    { name: "Papelería", route: "/products" },
+    { name: "Piñateria", route: "/products" },
+    { name: "Juguetería", route: "/products" },
+    { name: "Termos & Mugs", route: "/products" },
+    { name: "Cuidado Personal", route: "/products" },
+    { name: "Libros", route: "/products" },
+    { name: "Deporte & recreación", route: "/products" },
+    { name: "Ofertas", route: "/products" },
   ];
 
   // Items de navegación principal
