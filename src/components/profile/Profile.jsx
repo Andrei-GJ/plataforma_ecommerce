@@ -216,10 +216,8 @@ const CustomerProfile = () => {
 
         {activeTab === "signout" &&
           (() => {
-            toast.success("Sesión cerrada correctamente");
-
             setTimeout(() => {
-              localStorage.removeItem("user_id");
+              localStorage.clear();
               window.location.href = "/";
             }, 2000); // Espera 2 segundos para que el toast se muestre
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Link } from "next/link";
 import {
   Home,
   ChevronDown,
@@ -16,7 +17,11 @@ import {
   Truck,
   Settings,
   Grid,
+  Zap,
+  TrendingUp,
+  Activity,
   AlertCircle,
+  Import,
 } from "lucide-react";
 import { Edit, Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -29,7 +34,6 @@ const Sidebar = ({
   expandedSections,
   setExpandedSections,
   onRouteChange,
-  onLogout,
 }) => {
   const toggleSection = (sectionName) => {
     setExpandedSections((prev) => ({
@@ -76,6 +80,12 @@ const Sidebar = ({
       {isExpanded && <div className="mt-2 ml-4 space-y-1">{children}</div>}
     </div>
   );
+
+  const onLogout = () => {
+    localStorage.clear();
+
+    window.location.href = "/";
+  };
 
   return (
     <div
@@ -166,7 +176,7 @@ const Sidebar = ({
               onClick={() => handleRouteChange("productos/crear")}
             />
             <SidebarItem
-              text="Cards"
+              text="Productos"
               active={currentRoute === "productos/cards"}
               onClick={() => handleRouteChange("productos/cards")}
             />
@@ -208,45 +218,167 @@ const Sidebar = ({
   );
 };
 
-const HomePage = () => (
-  <div className="p-6">
-    <div className="max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <Package className="h-8 w-8 text-blue-500" />
-            <div className="ml-4">
-              <h2 className="text-lg font-semibold text-gray-900">Productos</h2>
-              <p className="text-sm text-gray-600">Gestiona tu inventario</p>
+const HomePage = () => {
+  const [counts, setCounts] = useState({
+    products: 0,
+    categories: 0,
+    providers: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [productsResponse, categoriesResponse, providersResponse] = await Promise.all([
+          fetch('https://back-ecomerce-vz7f.onrender.com/all_products'),
+          fetch('https://back-ecomerce-vz7f.onrender.com/categories'),
+          fetch('https://back-ecomerce-vz7f.onrender.com/all_provider')
+        ]);
+
+        if (!productsResponse.ok || !categoriesResponse.ok || !providersResponse.ok) {
+          throw new Error('Error al obtener los datos');
+        }
+
+        const [productsData, categoriesData, providersData] = await Promise.all([
+          productsResponse.json(),
+          categoriesResponse.json(),
+          providersResponse.json()
+        ]);
+
+        setCounts({
+          products: Array.isArray(productsData) ? productsData.length : 0,
+          categories: Array.isArray(categoriesData) ? categoriesData.length : 0,
+          providers: Array.isArray(providersData) ? providersData.length : 0
+        });
+
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Error al cargar los datos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCounts();
+  }, []);
+
+  const StatCard = ({ icon: Icon, title, description, count, gradient, shadowColor, accentIcon: AccentIcon }) => (
+    <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-1 transform hover:scale-105 transition-all duration-300 hover:rotate-1 ${shadowColor}`}>
+      <div className="relative bg-white/95 backdrop-blur-sm rounded-xl p-6 h-full">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/20 to-transparent rounded-full -mr-10 -mt-10"></div>
+        <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-white/10 to-transparent rounded-full -ml-8 -mb-8"></div>
+        
+        {/* Floating accent icon */}
+        <div className="absolute top-4 right-4 opacity-10">
+          <AccentIcon className="h-12 w-12" />
+        </div>
+
+        <div className="relative z-10">
+          <div className="flex items-start justify-between mb-4">
+            <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
+              <Icon className="h-6 w-6 text-white" />
             </div>
           </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <Tag className="h-8 w-8 text-green-500" />
-            <div className="ml-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Categorías
-              </h2>
-              <p className="text-sm text-gray-600">Organiza tus productos</p>
-            </div>
+
+          <div className="mb-3">
+            <h2 className="text-xl font-bold text-gray-800 mb-1">{title}</h2>
+            <p className="text-sm text-gray-600">{description}</p>
           </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <Users className="h-8 w-8 text-blue-500" />
-            <div className="ml-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Proveedores
-              </h2>
-              <p className="text-sm text-gray-600">Administra proveedores</p>
-            </div>
+
+          <div className="flex items-end justify-between">
+            {loading ? (
+              <div className="animate-pulse flex items-center space-x-2">
+                <div className="h-8 w-16 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg"></div>
+                <div className="h-6 w-6 bg-gray-200 rounded-full"></div>
+              </div>
+            ) : error ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-red-500 font-semibold">Error</span>
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <span className="text-3xl font-black bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                  {count.toLocaleString()}
+                </span>
+                <div className="flex flex-col">
+                  <span className="text-lg text-black font-bold">Registros</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0"></div>
+        <div className="relative max-w-7xl mx-auto px-6 py-12">
+          <div className="text-center mb-12">
+            
+            <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-gray-800 via-gray-900 to-black bg-clip-text text-transparent">
+              Panel de administración
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              Gestiona tu negocio en tiempo real y herramientas poderosas.
+            </p>
+          </div>
+
+          {error && (
+            <div className="mb-8 p-6 bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-400 rounded-r-xl shadow-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-red-700 font-semibold">{error}</span>
+              </div>
+            </div>
+          )}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <StatCard
+              icon={Tag}
+              accentIcon={Activity}
+              title="Categorías"
+              description="Organización inteligente de productos"
+              count={counts.categories}
+              gradient="from-emerald-500 to-teal-500"
+              shadowColor="shadow-emerald-500/25 hover:shadow-emerald-500/40 shadow-2xl"
+            />
+            
+            <StatCard
+              icon={Users}
+              accentIcon={TrendingUp}
+              title="Proveedores"
+              description="Red de socios comerciales activos"
+              count={counts.providers}
+              gradient="from-purple-500 to-pink-500"
+              shadowColor="shadow-purple-500/25 hover:shadow-purple-500/40 shadow-2xl"
+            />
+
+            <StatCard
+              icon={Package}
+              accentIcon={Zap}
+              title="Productos"
+              description="Inventario completo y actualizado"
+              count={counts.products}
+              gradient="from-blue-500 to-cyan-500"
+              shadowColor="shadow-blue-500/25 hover:shadow-blue-500/40 shadow-2xl"
+              />
+          </div>
+
+    </div>
+      </div>
+    </div>
+  );
+};
 
 // Componentes de Categorías
 const CategoriasListar = () => {
@@ -339,10 +471,10 @@ const CategoriasListar = () => {
           ></div>
           Actualizar
         </button>
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
+        {/* <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
           <Plus className="w-4 h-4 inline mr-2" />
           Nueva Categoría
-        </button>
+        </button> */}
       </div>
 
       {/* Estado de error */}
@@ -669,13 +801,13 @@ const ProveedoresListar = () => {
           ></div>
           Actualizar
         </button>
-        <button
+        {/* <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-full transition-colors"
           onClick={() => handleRouteChange("proveedores/crear")}
         >
           <Plus className="w-4 h-4 inline mr-2" />
           Nuevo proveedor
-        </button>
+        </button> */}
       </div>
 
       {/* Error */}
@@ -943,10 +1075,10 @@ const ProductosListar = () => {
           ></div>
           Actualizar
         </button>
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
+        {/* <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
           <Plus className="w-4 h-4 inline mr-2" />
           Nuevo producto
-        </button>
+        </button> */}
       </div>
 
       {error && (
@@ -1080,14 +1212,12 @@ const ProductosCrear = () => {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    // Obtener proveedores
     fetch("https://back-ecomerce-vz7f.onrender.com/all_provider")
       .then((res) => res.json())
       .then((data) => setProviders(data))
       .catch((err) => console.error("Error al cargar proveedores", err));
 
-    // Obtener categorías
-    fetch("https://back-ecomerce-vz7f.onrender.com/get_products_category")
+    fetch("https://back-ecomerce-vz7f.onrender.com/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch((err) => console.error("Error al cargar categorías", err));
@@ -1102,45 +1232,53 @@ const ProductosCrear = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const response = await fetch(
-        "https://back-ecomerce-vz7f.onrender.com/create_product",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            provider_id: parseInt(formData.provider_id),
-            category_id: parseInt(formData.category_id),
-            name_product: formData.name_product,
-            quantity: parseInt(formData.quantity),
-            isactive: formData.isactive,
-            price: parseFloat(formData.price),
-            image: formData.image,
-          }),
-        }
-      );
+  try {
+    const payload = {
+      provider_id: parseInt(formData.provider_id),
+      category_id: parseInt(formData.category_id),
+      name_product: formData.name_product,
+      quantity: parseInt(formData.quantity),
+      isactive: formData.isactive,
+      price: parseFloat(formData.price),
+      image: formData.image,
+    };
 
-      if (!response.ok) throw new Error("Error al crear el producto");
+    const response = await fetch(
+      "https://back-ecomerce-vz7f.onrender.com/create_product",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
-      alert("✅ Producto creado con éxito");
-      setFormData({
-        provider_id: "",
-        category_id: "",
-        name_product: "",
-        quantity: "",
-        isactive: true,
-        price: "",
-        image: "",
-      });
-    } catch (error) {
-      console.error(error);
-      alert("❌ Error al crear el producto");
+    const data = await response.json();
+    console.log("Respuesta del backend:", data);
+
+    if (!response.ok) {
+      throw new Error(data.message || "Error al crear el producto");
     }
-  };
+
+    alert("✅ Producto creado con éxito");
+    setFormData({
+      provider_id: "",
+      category_id: "",
+      name_product: "",
+      quantity: "",
+      isactive: true,
+      price: "",
+      image: "",
+    });
+  } catch (error) {
+    console.error("❌ Error:", error.message);
+    alert("❌ Error al crear el producto");
+  }
+};
+
 
   return (
     <div className="p-6">
@@ -1175,7 +1313,7 @@ const ProductosCrear = () => {
                 <option value="">Seleccionar categoría</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.category_name}
+                    {cat.name}
                   </option>
                 ))}
               </select>
@@ -1216,7 +1354,34 @@ const ProductosCrear = () => {
               </select>
             </div>
 
-            
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Cantidad
+              </label>
+              <input
+                type="number"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleChange}
+                required
+                className="mt-1 p-2 pl-3 text-black block w-full border border-gray-300 rounded-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Imagen (URL)
+              </label>
+              <input
+                type="text"
+                name="image"
+                value={formData.image}
+                onChange={handleChange}
+                required
+                placeholder="https://..."
+                className="mt-1 p-2 pl-3 text-black block w-full border border-gray-300 rounded-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
 
             <div className="flex items-center space-x-2">
               <input
@@ -1260,69 +1425,80 @@ const ProductosCrear = () => {
   );
 };
 
-const ProductosCards = () => (
-  <div className="p-6">
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[
-        {
-          nombre: "Smartphone XYZ",
-          precio: "$299.99",
-          imagen: "/api/placeholder/300/200",
-        },
-        {
-          nombre: "Camiseta Básica",
-          precio: "$19.99",
-          imagen: "/api/placeholder/300/200",
-        },
-        {
-          nombre: "Mesa de Centro",
-          precio: "$129.99",
-          imagen: "/api/placeholder/300/200",
-        },
-        {
-          nombre: "Auriculares Pro",
-          precio: "$89.99",
-          imagen: "/api/placeholder/300/200",
-        },
-        {
-          nombre: "Zapatillas Sport",
-          precio: "$79.99",
-          imagen: "/api/placeholder/300/200",
-        },
-        {
-          nombre: "Lámpara LED",
-          precio: "$45.99",
-          imagen: "/api/placeholder/300/200",
-        },
-      ].map((producto, index) => (
-        <div
-          key={index}
-          className="bg-white rounded-lg shadow-md overflow-hidden"
-        >
-          <div className="h-48 bg-gray-200 flex items-center justify-center">
-            <Package className="w-12 h-12 text-gray-400" />
-          </div>
-          <div className="p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {producto.nombre}
-            </h3>
-            <p className="text-xl font-bold text-green-600 mb-4">
-              {producto.precio}
-            </p>
-            <div className="flex space-x-2">
-              <button className="flex-1 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
-                Ver
-              </button>
-              <button className="flex-1 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded text-sm">
-                Editar
-              </button>
+
+const ProductosCards = () => {
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const obtenerProductos = async () => {
+      try {
+        const res = await fetch("https://back-ecomerce-vz7f.onrender.com/all_products");
+        if (!res.ok) throw new Error("Error al obtener los productos");
+
+        const data = await res.json();
+        setProductos(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    obtenerProductos();
+  }, []);
+
+  if (loading) {
+    return <p className="p-6 text-gray-600">Cargando productos...</p>;
+  }
+
+  if (error) {
+    return <p className="p-6 text-red-600">Error: {error}</p>;
+  }
+
+  return (
+    <div className="p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {productos.map((producto, index) => (
+          <div
+            key={index}
+            className="bg-white rounded-lg shadow-md overflow-hidden"
+          >
+            <div className="h-48 bg-gray-100 flex items-center justify-center">
+              {producto.image ? (
+                <img
+                  src={producto.image}
+                  alt={producto.name_product}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Package className="w-12 h-12 text-gray-400" />
+              )}
+            </div>
+            <div className="p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {producto.name_product}
+              </h3>
+              <p className="text-xl font-bold text-green-600 mb-4">
+                ${producto.price}
+              </p>
+              <div className="flex space-x-2">
+                <button className="flex-1 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
+                  Ver
+                </button>
+                <button className="flex-1 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded text-sm">
+                  Editar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
 
 const ProductosAdmin = () => (
   <div className="p-6">
@@ -1341,32 +1517,75 @@ const ProductosAdmin = () => (
 );
 
 // Otros componentes
-const ProfilePage = () => (
-  <div className="p-6">
-    <div className="bg-white shadow rounded-lg p-6">
-      <div className="flex items-center mb-6">
-        <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
-          <User className="w-8 h-8 text-gray-600" />
-        </div>
-        <div className="ml-4">
-          <h2 className="text-xl font-semibold text-gray-900">Administrador</h2>
-          <p className="text-gray-600">admin@cositaspa.com</p>
+const ProfilePage = () => {
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          console.error("No se encontró user_id en el localStorage");
+          return;
+        }
+
+        const response = await fetch(
+          `https://back-ecomerce-vz7f.onrender.com/user/${user_id}`
+        );
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error("Error al obtener los datos del usuario:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (!userData) {
+    return (
+      <div className="p-6">
+        <div className="bg-white shadow rounded-lg p-6 text-gray-600">
+          Cargando perfil...
         </div>
       </div>
-      <div className="space-y-4">
-        <button className="w-full text-left p-3 border border-gray-300 rounded-md hover:bg-gray-50">
-          Cambiar contraseña
-        </button>
-        <button className="w-full text-left p-3 border border-gray-300 rounded-md hover:bg-gray-50">
-          Configuración de notificaciones
-        </button>
-        <button className="w-full text-left p-3 border border-gray-300 rounded-md hover:bg-gray-50">
-          Preferencias del sistema
-        </button>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="flex items-center mb-6">
+          <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
+            <User className="w-8 h-8 text-gray-600" />
+          </div>
+          <div className="ml-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {userData.first_name} {userData.surname}
+            </h2>
+            <p className="text-gray-600">{userData.email}</p>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div className="text-sm text-gray-700">
+            <p className="mb-1 font-medium">Documento</p>
+            <p>{userData.documenttype} - {userData.documentnumber}</p>
+          </div>
+          <button className="w-full text-left p-3 border border-gray-300 rounded-md hover:bg-gray-50">
+            Cambiar contraseña
+          </button>
+          <button className="w-full text-left p-3 border border-gray-300 rounded-md hover:bg-gray-50">
+            Configuración de notificaciones
+          </button>
+          <button className="w-full text-left p-3 border border-gray-300 rounded-md hover:bg-gray-50">
+            Preferencias del sistema
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
+
 
 // Componente principal con sistema de enrutamiento
 const AdminDashboard = () => {
@@ -1417,7 +1636,7 @@ const AdminDashboard = () => {
       case "":
         return;
       default:
-        return <HomePage />;
+        return "/";
     }
   };
 
@@ -1504,7 +1723,7 @@ const getCurrentPageTitle = (route) => {
     "proveedores/admin": "Administrar proveedores",
     "productos/listar": "Lista de productos",
     "productos/crear": "Crear producto",
-    "productos/cards": "Productos en Cards",
+    "productos/cards": "Productos",
     "productos/admin": "Administrar productos",
     profile: "Perfil de usuario",
     "": "Tienda Principal",

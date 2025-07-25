@@ -58,18 +58,19 @@ export default function FloatingLogin({ isOpen, onClose }) {
 
       const data = await response.json();
 
-      // Guardar en localStorage
-      localStorage.setItem("token", data.token);
       localStorage.setItem("email", userExists.email);
-      localStorage.setItem("role", userExists.role);
       localStorage.setItem("userId", userExists.id.toString());
 
-      // Redirección según rol
-      if (userExists.role === "admin") {
-        router.push("/admindashboard");
+      alert("Inicio de sesión exitoso ✅");
+
+      if (userExists.email === "admin@cositas.com") {
+        router.push("/dashboardadmin");
       } else {
         router.push("/profile");
       }
+
+      // ✅ Cerrar modal al iniciar sesión
+      onClose();
     } catch (error) {
       console.error("Error en el login:", error);
       alert("Error al iniciar sesión.");
