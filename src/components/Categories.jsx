@@ -1,111 +1,73 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
+
+const categories = [
+  {
+    id: 1,
+    name: "Papelería",
+    image: "/images/papeleria.jpg",
+    gradient: "bg-gradient-to-br from-green-400 via-green-300 to-lime-300",
+    span: "",
+  },
+  {
+    id: 2,
+    name: "Piñatería",
+    image: "/images/piñateria.jpg",
+    gradient: "bg-gradient-to-br from-gray-900/50 via-amber-900/30 to-gray-800/70",
+    span: "",
+  },
+  {
+    id: 5,
+    name: "Cuidado Personal",
+    image: "/images/cuidado.jpg",
+    gradient: "bg-gradient-to-br from-purple-600 via-blue-600 to-blue-500",
+    span: "row-span-2",
+  },
+  {
+    id: 3,
+    name: "Juguetería",
+    image: "/images/jugueteria.jpg",
+    gradient: "bg-gradient-to-br from-green-400 via-green-300 to-lime-300",
+    span: "",
+  },
+  {
+    id: 4,
+    name: "Termos",
+    image: "/images/termos.jpeg",
+    gradient: "bg-gradient-to-br from-gray-900/50 via-amber-900/30 to-gray-800/70",
+    span: "",
+  },
+];
 
 const CategoriesComponent = () => {
   return (
-    <div className="max-w-300 mx-auto mt-8">
-      <h2 className="text-xl font-bold text-gray-800 mb-8">Categorias</h2>
+    <div className="max-w-7xl mx-auto mt-8 px-10">
+      <h2 className="text-xl font-bold text-gray-800 mb-8">Categorías</h2>
 
-      {/* Grid Layout */}
-      <div className="grid grid-cols-3 gap-5">
-        {/* Clothing & Shoes - Top Left */}
-        <div className="relative rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 bg-gradient-to-br from-green-400 via-green-300 to-lime-300">
-          <div className="absolute inset-0 p-6 flex flex-col justify-between">
+      <div className="grid grid-cols-3 gap-5 auto-rows-[250px]">
+        {categories.map((category) => (
+          <Link
+            key={category.id}
+            href={`/products?category_id=${category.id}`}
+            className={`relative rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 ${category.gradient} ${category.span}`}
+          >
             <Image
-              src="/images/papeleria.jpg"
-              alt="Papeleria"
+              src={category.image}
+              alt={category.name}
               fill
               className="object-cover"
             />
+            <div className="absolute inset-0 bg-black/20" />
             <div className="absolute inset-0 p-6 flex items-end justify-end">
-              <h3 className="text-black text-xl font-bold">
-                Papelería
+              <h3 className="text-white text-xl font-bold drop-shadow">
+                {category.name}
               </h3>
             </div>
-          </div>
-        </div>
-
-        {/* Home & Living - Top Center */}
-        <div className="relative rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105">
-          <img
-            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='homeGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23654321'/%3E%3Cstop offset='100%25' style='stop-color:%232F1B14'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23homeGrad)'/%3E%3C/svg%3E"
-            alt="Home background"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/50 via-amber-900/30 to-gray-800/70">
-            <div className="p-6 flex flex-col justify-between h-full">
-              <Image
-                src="/images/piñateria.jpg"
-                alt="Piñateria"
-                fill
-                className="object-cover"
-              />
-              <div className="absolute inset-0 p-6 flex items-end justify-end">
-                <h3 className="text-black text-xl font-bold">
-                  Piñatería
-                </h3>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Art & Collectibles - Right Side (spans 2 rows) */}
-        <div className="row-span-2 relative rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 bg-gradient-to-br from-purple-600 via-blue-600 to-blue-500">
-          <div className="absolute inset-0 p-6 flex flex-col justify-between">
-            <Image
-              src="/images/ofertas.jpg"
-              alt="Papeleria"
-              fill
-              className="object-cover"
-            />
-            <div className="absolute flex items-end justify-end">
-              <h3 className="text-white text-xl font-bold">
-                Ofertas
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        {/* Clothing & Shoes - Bottom Left (duplicate) */}
-        <div className="relative rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 bg-gradient-to-br from-green-400 via-green-300 to-lime-300">
-          <div className="absolute inset-0 p-6 flex flex-col justify-between">
-            <Image
-              src="/images/jugueteria.jpg"
-              alt="Jugueteria"
-              fill
-              className="object-cover"
-            />
-            <div className="absolute inset-0 p-6 flex items-end justify-end">
-              <h3 className="text-black text-xl font-bold">
-                Juguetería
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        {/* Home & Living - Bottom Center (duplicate) */}
-        <div className="relative rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105">
-          <img
-            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='homeGrad2' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23654321'/%3E%3Cstop offset='100%25' style='stop-color:%232F1B14'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23homeGrad2)'/%3E%3C/svg%3E"
-            alt="Home background"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/50 via-amber-900/30 to-gray-800/70">
-            <div className="p-6 flex flex-col justify-between h-full">
-              <Image
-                src="/images/termos.jpeg"
-                alt="Termos"
-                fill
-                className="object-cover"
-              />
-              <div className="absolute inset-0 p-6 flex items-end justify-end">
-                <h3 className="text-black text-xl font-bold">
-                  Termos & Mugs
-                </h3>
-              </div>
-            </div>
-          </div>
-        </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
