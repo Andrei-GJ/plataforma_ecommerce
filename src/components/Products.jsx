@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Heart, ChevronDown, ChevronRight, ShoppingCart } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useCart } from "@/context/CartContext";
 
 const MiscellaneousStoreInterface = () => {
   const [loading, setLoading] = useState(true);
@@ -15,6 +16,18 @@ const MiscellaneousStoreInterface = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const category_id = searchParams.get("category_id");
+  
+  const { addToCart } = useCart();
+
+  const handleAddToCart = (product) => {
+    const cartItem = {
+      id: product.id,
+      name: product.name_product,
+      price: product.price,
+      category: categories.find((c) => c.id === product.category_id)?.name || "Sin categoría"
+    };
+    addToCart(cartItem);
+  };
 
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
@@ -220,7 +233,11 @@ const MiscellaneousStoreInterface = () => {
                     <p className="text-md font-bold text-blue-600 tracking-wide">
                       ${product.price.toFixed(0)}
                     </p>
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors">
+                    <button 
+                      onClick={() => handleAddToCart(product)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors hover:scale-105 transform"
+                      title="Agregar al carrito"
+                    >
                       <ShoppingCart size={16} />
                     </button>
                   </div>
