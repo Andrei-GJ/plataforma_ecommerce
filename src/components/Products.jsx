@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Heart, ChevronDown, ChevronRight, ShoppingCart } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const MiscellaneousStoreInterface = () => {
   const [loading, setLoading] = useState(true);
@@ -13,6 +13,7 @@ const MiscellaneousStoreInterface = () => {
   const [priceRange, setPriceRange] = useState([1000, 1000000]);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const category_id = searchParams.get("category_id");
 
   const [expandedSections, setExpandedSections] = useState({

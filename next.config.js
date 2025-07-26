@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    appDir: true,
+    // appDir ya no es necesario en Next.js 15
   },
   images: {
     // Puedes personalizar domains si usas imágenes externas
