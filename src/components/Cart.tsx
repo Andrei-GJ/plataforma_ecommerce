@@ -4,23 +4,32 @@ import React, { useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { ShoppingCart, X, Plus, Minus, Trash2, Mail } from 'lucide-react';
 
-const Cart = () => {
-  const { items, removeFromCart, updateQuantity, clearCart, getCartTotal, getCartItemsCount } = useCart();
-  const [isOpen, setIsOpen] = useState(false);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [customerEmail, setCustomerEmail] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [orderStatus, setOrderStatus] = useState('');
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  category?: string;
+  image?: string;
+}
 
-  const formatPrice = (price) => {
+const Cart: React.FC = () => {
+  const { items, removeFromCart, updateQuantity, clearCart, getCartTotal, getCartItemsCount } = useCart();
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false);
+  const [customerEmail, setCustomerEmail] = useState<string>('');
+  const [customerName, setCustomerName] = useState<string>('');
+  const [customerPhone, setCustomerPhone] = useState<string>('');
+  const [orderStatus, setOrderStatus] = useState<string>('');
+
+  const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP'
     }).format(price);
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = async (): Promise<void> => {
     if (!customerEmail || !customerName || !customerPhone) {
       alert('Por favor completa todos los campos');
       return;
@@ -32,7 +41,7 @@ const Cart = () => {
     }
 
     setIsCheckingOut(true);
-    setOrderStatus('Procesando pedido...');
+    setOrderStatus('📤 Procesando pedido y enviando correo electrónico...');
 
     try {
       const orderData = {
@@ -53,7 +62,8 @@ const Cart = () => {
       });
 
       if (response.ok) {
-        setOrderStatus('¡Pedido enviado exitosamente!');
+        const result = await response.json();
+        setOrderStatus('✅ ¡Correo enviado exitosamente! Tu pedido ha sido procesado y recibirás una confirmación por email.');
         clearCart();
         setCustomerEmail('');
         setCustomerName('');
@@ -61,13 +71,15 @@ const Cart = () => {
         setTimeout(() => {
           setIsOpen(false);
           setOrderStatus('');
-        }, 2000);
+        }, 4000);
       } else {
-        throw new Error('Error al enviar el pedido');
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error(errorData.message || 'Error al enviar el pedido');
       }
     } catch (error) {
       console.error('Error:', error);
-      setOrderStatus('Error al enviar el pedido. Inténtalo de nuevo.');
+      setOrderStatus('❌ Error al enviar el pedido. Inténtalo de nuevo.');
     } finally {
       setIsCheckingOut(false);
     }
@@ -117,12 +129,35 @@ const Cart = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {items.map((item) => (
+                    {items.map((item: CartItem) => (
                       <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1 pr-3">
-                            <h3 className="font-semibold text-gray-800 text-base">{item.name}</h3>
-                            <p className="text-amber-600 font-bold text-lg">{formatPrice(item.price)}</p>
+                          <div className="flex items-start space-x-3 flex-1 pr-3">
+                            {/* Imagen del producto en el carrito */}
+                            <div className="w-16 h-16 bg-amber-100 rounded-lg flex-shrink-0 overflow-hidden">
+                              {item.image ? (
+                                <img 
+                                  src={item.image} 
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    if (target.nextSibling) {
+                                      (target.nextSibling as HTMLElement).style.display = 'flex';
+                                    }
+                                  }}
+                                />
+                              ) : null}
+                              <div className="w-full h-full bg-amber-200 flex items-center justify-center text-lg" style={{ display: item.image ? 'none' : 'flex' }}>
+                                🛍️
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-800 text-base">{item.name}</h3>
+                              <p className="text-amber-600 font-bold text-lg">{formatPrice(item.price)}</p>
+                              <p className="text-xs text-gray-500">{item.category}</p>
+                            </div>
                           </div>
                           <button
                             onClick={() => removeFromCart(item.id)}
@@ -171,6 +206,14 @@ const Cart = () => {
 
                   {/* Formulario de checkout */}
                   <div className="space-y-5 mb-6">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                      <p className="text-sm text-blue-700">
+                        📧 <strong>Tu pedido será enviado por correo electrónico</strong>
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        Recibirás una confirmación en tu email y nosotros procesaremos tu orden
+                      </p>
+                    </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         👤 Nombre completo
@@ -180,7 +223,7 @@ const Cart = () => {
                         placeholder="Tu nombre completo"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
+                        className="text-[black] w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
                       />
                     </div>
                     <div>
@@ -192,7 +235,7 @@ const Cart = () => {
                         placeholder="tu@email.com"
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
-                        className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
+                        className="text-[black] w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
                       />
                     </div>
                     <div>
@@ -204,20 +247,35 @@ const Cart = () => {
                         placeholder="310 123 4567"
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
-                        className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
+                        className="text-[black] w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all shadow-sm"
                       />
                     </div>
                   </div>
 
+                  {/* Estado del pedido con animaciones mejoradas */}
                   {orderStatus && (
-                    <div className={`p-4 rounded-lg mb-4 text-center font-medium border ${
-                      orderStatus.includes('exitosamente') 
-                        ? 'bg-green-50 text-green-800 border-green-200'
+                    <div className={`p-5 rounded-xl mb-6 text-center font-medium border-2 transition-all duration-300 ${
+                      orderStatus.includes('exitosamente') || orderStatus.includes('Correo enviado')
+                        ? 'bg-green-50 text-green-800 border-green-300 shadow-lg transform scale-105'
                         : orderStatus.includes('Error')
-                        ? 'bg-red-50 text-red-800 border-red-200'
-                        : 'bg-amber-50 text-amber-800 border-amber-200'
+                        ? 'bg-red-50 text-red-800 border-red-300 shadow-lg'
+                        : 'bg-blue-50 text-blue-800 border-blue-300 shadow-md'
                     }`}>
-                      {orderStatus}
+                      <div className="flex items-center justify-center space-x-3">
+                        {orderStatus.includes('exitosamente') || orderStatus.includes('Correo enviado') ? (
+                          <span className="text-2xl animate-bounce">✅</span>
+                        ) : orderStatus.includes('Error') ? (
+                          <span className="text-2xl">❌</span>
+                        ) : (
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                        )}
+                        <span className="text-base font-semibold">{orderStatus}</span>
+                      </div>
+                      {(orderStatus.includes('exitosamente') || orderStatus.includes('Correo enviado')) && (
+                        <div className="mt-3 text-sm text-green-700">
+                          🎉 ¡Tu pedido ha sido enviado correctamente!
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -228,7 +286,7 @@ const Cart = () => {
                       className="w-full bg-amber-500 text-white py-4 rounded-lg hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 font-semibold text-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                     >
                       <Mail className="w-6 h-6" />
-                      <span>{isCheckingOut ? 'Enviando pedido...' : '🚀 Realizar Pedido'}</span>
+                      <span>{isCheckingOut ? '📤 Enviando correo electrónico...' : '📧 Enviar Pedido por Email'}</span>
                     </button>
                     
                     <button

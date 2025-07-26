@@ -82,7 +82,7 @@ export async function POST(request) {
     `;
 
     // Configuración del transportador de correo (usando Gmail como ejemplo)
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER || 'tu-email@gmail.com', // Configurar en variables de entorno
