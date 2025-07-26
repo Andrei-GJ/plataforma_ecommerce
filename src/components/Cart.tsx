@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { ShoppingCart, X, Plus, Minus, Trash2, Mail } from 'lucide-react';
 
@@ -62,7 +63,7 @@ const Cart: React.FC = () => {
       });
 
       if (response.ok) {
-        const result = await response.json();
+        await response.json();
         setOrderStatus('✅ ¡Correo enviado exitosamente! Tu pedido ha sido procesado y recibirás una confirmación por email.');
         clearCart();
         setCustomerEmail('');
@@ -136,9 +137,11 @@ const Cart: React.FC = () => {
                             {/* Imagen del producto en el carrito */}
                             <div className="w-16 h-16 bg-amber-100 rounded-lg flex-shrink-0 overflow-hidden">
                               {item.image ? (
-                                <img 
+                                <Image 
                                   src={item.image} 
                                   alt={item.name}
+                                  width={64}
+                                  height={64}
                                   className="w-full h-full object-cover"
                                   onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                                     const target = e.target as HTMLImageElement;
