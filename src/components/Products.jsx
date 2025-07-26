@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Heart, ChevronDown, ChevronRight, ShoppingCart } from "lucide-react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const MiscellaneousStoreInterface = () => {
   const [loading, setLoading] = useState(true);
@@ -12,7 +12,6 @@ const MiscellaneousStoreInterface = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [priceRange, setPriceRange] = useState([1000, 1000000]);
 
-  const searchParams = useSearchParams();
   const router = useRouter();
   const category_id = searchParams.get("category_id");
 
@@ -42,21 +41,19 @@ const MiscellaneousStoreInterface = () => {
   };
 
   const categoryColorClasses = {
-    1: "bg-yellow-100 text-yellow-800", // Papelería
-    2: "bg-pink-100 text-pink-800", // Piñatería
-    3: "bg-green-100 text-green-800", // Juguetería
-    4: "bg-purple-100 text-purple-800", // Termos & Mugs
-    5: "bg-red-100 text-red-800", // Cuidado Personal
-    6: "bg-blue-100 text-blue-800", // Libros
-    7: "bg-indigo-100 text-indigo-800", // Deporte & Recreación
+    1: "bg-yellow-100 text-yellow-800",
+    2: "bg-pink-100 text-pink-800",
+    3: "bg-green-100 text-green-800",
+    4: "bg-purple-100 text-purple-800",
+    5: "bg-red-100 text-red-800",
+    6: "bg-blue-100 text-blue-800",
+    7: "bg-indigo-100 text-indigo-800",
   };
-  // Obtener categorías desde el backend
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(
-          "https://back-ecomerce-vz7f.onrender.com/categories"
-        );
+        const response = await fetch("https://back-ecomerce-vz7f.onrender.com/categories");
         const data = await response.json();
         setCategories(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -66,7 +63,6 @@ const MiscellaneousStoreInterface = () => {
     fetchCategories();
   }, []);
 
-  // Obtener productos según categoría (si aplica)
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -77,9 +73,7 @@ const MiscellaneousStoreInterface = () => {
             `https://back-ecomerce-vz7f.onrender.com/product_by_category/${category_id}`
           );
         } else {
-          response = await fetch(
-            "https://back-ecomerce-vz7f.onrender.com/all_products"
-          );
+          response = await fetch("https://back-ecomerce-vz7f.onrender.com/all_products");
         }
 
         if (!response.ok) throw new Error("Error al obtener los productos");
@@ -102,21 +96,20 @@ const MiscellaneousStoreInterface = () => {
     fetchProducts();
   }, [category_id]);
 
-  // Filtrar por precio
+  // 💡 Filtrar por estado activo y precio
   useEffect(() => {
     const filtered = products.filter(
       (product) =>
-        product.price >= priceRange[0] && product.price <= priceRange[1]
+        product.isactive === true &&
+        product.price >= priceRange[0] &&
+        product.price <= priceRange[1]
     );
     setFilteredProducts(filtered);
   }, [products, priceRange]);
 
   const FilterSection = ({ title, isExpanded, onToggle, children }) => (
     <div className="border-b border-gray-200 py-4">
-      <button
-        onClick={onToggle}
-        className="flex items-center justify-between w-full text-left"
-      >
+      <button onClick={onToggle} className="flex items-center justify-between w-full text-left">
         <span className="font-medium text-gray-900">{title}</span>
         {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
       </button>
@@ -138,10 +131,7 @@ const MiscellaneousStoreInterface = () => {
         >
           <div className="space-y-2">
             {categories.map((category) => (
-              <div
-                key={category.id}
-                className="flex items-center cursor-pointer"
-              >
+              <div key={category.id} className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
                   className="mr-2 text-blue-600"
@@ -203,10 +193,7 @@ const MiscellaneousStoreInterface = () => {
               >
                 <div className="relative bg-gray-100 h-56 flex items-center justify-center">
                   <button className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-sm hover:shadow-md">
-                    <Heart
-                      size={16}
-                      className="text-gray-400 hover:text-red-500"
-                    />
+                    <Heart size={16} className="text-gray-400 hover:text-red-500" />
                   </button>
                   <div className="w-28 h-28 bg-gray-300 rounded-lg flex items-center justify-center">
                     <span className="text-gray-600 text-xs text-center">
@@ -221,8 +208,7 @@ const MiscellaneousStoreInterface = () => {
                       "bg-gray-100 text-gray-600"
                     }`}
                   >
-                    {categories.find((c) => c.id === product.category_id)
-                      ?.name || "Categoría"}
+                    {categories.find((c) => c.id === product.category_id)?.name || "Categoría"}
                   </div>
                 </div>
                 <div className="p-4">
