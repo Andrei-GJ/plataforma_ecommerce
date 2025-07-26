@@ -3,6 +3,10 @@ import nodemailer from 'nodemailer';
 
 export async function POST(request) {
   try {
+    console.log('🔍 Iniciando proceso de envío de pedido...');
+    console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'Configurado ✅' : 'NO CONFIGURADO ❌');
+    console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'Configurado ✅' : 'NO CONFIGURADO ❌');
+    
     const orderData = await request.json();
     const { customerName, customerEmail, customerPhone, items, total, orderDate } = orderData;
 
@@ -82,13 +86,26 @@ export async function POST(request) {
     `;
 
     // Configuración del transportador de correo (usando Gmail como ejemplo)
+    console.log('📧 Configurando transportador de correo...');
+    
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      throw new Error('Variables de entorno EMAIL_USER y EMAIL_PASS no configuradas. Configúralas en Vercel Dashboard.');
+    }
+    
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER || 'tu-email@gmail.com', // Configurar en variables de entorno
-        pass: process.env.EMAIL_PASS || 'tu-app-password'     // Usar App Password de Gmail
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
       }
     });
+
+    // Verificar la conexión antes de enviar
+    console.log('🔍 Verificando conexión con Gmail...');
+    await transporter.verify();
+    console.log('✅ Conexión con Gmail verificada exitosamente');
+
+    console.log('📬 Enviando correo al administrador...');
 
     // Enviar correo al administrador
     await transporter.sendMail({
@@ -97,7 +114,9 @@ export async function POST(request) {
       subject: `🛒 Nuevo Pedido de ${customerName}`,
       html: htmlContent
     });
+    console.log('✅ Correo al administrador enviado');
 
+    console.log('📧 Enviando correo de confirmación al cliente...');
     // Enviar correo de confirmación al cliente
     const customerConfirmationHtml = `
       <!DOCTYPE html>
@@ -138,10 +157,11 @@ export async function POST(request) {
       subject: '✅ Confirmación de Pedido - Cositas pa\' Sumercé',
       html: customerConfirmationHtml
     });
+    console.log('✅ Correo de confirmación al cliente enviado');
 
-    console.log('📧 Correos enviados exitosamente');
+    console.log('📧 ¡Correos enviados exitosamente! ✅');
     console.log('Cliente:', customerName, customerEmail, customerPhone);
-    console.log('Items:', items);
+    console.log('Items:', items.length, 'productos');
     console.log('Total:', total);
 
     return NextResponse.json({ 
@@ -151,9 +171,12 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error('Error procesando pedido:', error);
+    console.error('❌ Error procesando pedido:', error);
+    console.error('❌ Mensaje de error:', error.message);
+    console.error('❌ Stack trace:', error.stack);
+    
     return NextResponse.json(
-      { success: false, message: 'Error al enviar el pedido. Inténtalo de nuevo.' },
+      { success: false, message: `Error al enviar el pedido: ${error.message}` },
       { status: 500 }
     );
   }
