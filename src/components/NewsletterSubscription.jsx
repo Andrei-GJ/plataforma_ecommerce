@@ -15,7 +15,7 @@ export default function NewsletterSubscription() {
   };
 
   return (
-    <div className="bg-indigo-600 px-8 py-20">
+    <div className="bg-blue-700 px-8 py-20">
       <div className="max-w-2xl mx-auto text-center">
         <h2 className="text-white text-xl md:text-2xl font-normal leading-relaxed mb-10 px-4">
           Envíeme ofertas exclusivas, ideas para regalos únicos

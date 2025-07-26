@@ -1,185 +1,598 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Eye, EyeOff, X, Check, AlertTriangle } from "lucide-react";
 
-export default function RegisterComponent() {
+export default function FloatingRegisterModal({
+  isOpen,
+  onClose,
+}) {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('designer@gmail.com');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    first_name: "",
+    surname: "",
+    document_type_id: "",
+    document_number: "",
+  });
   const [acceptTerms, setAcceptTerms] = useState(true);
   const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
-  const [emailError, setEmailError] = useState('Este correo no es válido');
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [notification, setNotification] = useState(null);
+
+  // Función para mostrar notificaciones
+  const showNotification = (type, title, message, duration = 5000) => {
+    const id = Date.now();
+    setNotification({ id, type, title, message });
+
+    setTimeout(() => {
+      setNotification(null);
+    }, duration);
+  };
+
+  // Tipos de documento comunes en Colombia
+const documentTypes = [
+  { id: "1", name: "Tarjeta de identidad" },
+  { id: "2", name: "Cédula de ciudadania" },
+  { id: "5", name: "Cédula de extranjeria" },
+  { id: "6", name: "NIT" },
+  { id: "7", name: "Pasaporte" },
+];
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Registro enviado:', { email, password, acceptTerms, subscribeNewsletter });
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    // Limpiar error cuando el usuario empiece a escribir
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }));
+    }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.email) {
+      newErrors.email = "El correo electrónico es requerido";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Este correo no es válido";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "La contraseña es requerida";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "La contraseña debe tener al menos 8 caracteres";
+    }
+
+    if (!formData.first_name.trim()) {
+      newErrors.first_name = "El nombre es requerido";
+    }
+
+    if (!formData.surname.trim()) {
+      newErrors.surname = "El apellido es requerido";
+    }
+
+    if (!formData.document_type_id) {
+      newErrors.document_type_id = "Seleccione un tipo de documento";
+    }
+
+    if (!formData.document_number.trim()) {
+      newErrors.document_number = "El número de documento es requerido";
+    }
+
+    if (!acceptTerms) {
+      newErrors.terms = "Debe aceptar las condiciones de uso";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const response = await fetch(
+        "https://back-ecomerce-vz7f.onrender.com/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            first_name: formData.first_name,
+            surname: formData.surname,
+            document_type_id: formData.document_type_id,
+            document_number: formData.document_number,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Registro exitoso
+        console.log("Usuario registrado exitosamente:", data);
+
+        showNotification(
+          "success",
+          "¡Registro Exitoso!",
+          `Bienvenido ${formData.first_name}! Tu cuenta ha sido creada.`
+        );
+
+        // Cerrar modal después de un pequeño delay para que se vea la notificación
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      } else {
+        // Error de la API
+        if (data.errors) {
+          // Si la API devuelve errores específicos por campo
+          setErrors(data.errors);
+          showNotification(
+            "error",
+            "Error en el Registro",
+            "Por favor, corrige los errores en el formulario."
+          );
+        } else {
+          // Error general
+          const errorMessage = data.message || "Error al registrar usuario";
+          setErrors({ general: errorMessage });
+          showNotification("error", "Error en el Registro", errorMessage);
+        }
+      }
+    } catch (error) {
+      console.error("Error de conexión:", error);
+      const connectionError =
+        "Error de conexión. Por favor, intenta nuevamente.";
+      setErrors({ general: connectionError });
+      showNotification(
+        "error",
+        "Error de Conexión",
+        "No se pudo conectar al servidor. Verifica tu conexión a internet."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const notificationStyles = `
+    .slide-in-right {
+      animation: slideInFromRight 0.5s ease-out;
+    }
+    
+    .progress-bar {
+      animation: progressBar 5s linear forwards;
+    }
+    
+    .modal-slide-in {
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideInFromRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes progressBar {
+      from {
+        width: 100%;
+      }
+      to {
+        width: 0%;
+      }
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  `;
+
   return (
-    <div className="min-h-screen flex">
-      {/* Imagen lateral */}
-      <div className="flex-1 relative overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-gradient-to-br from-cyan-400 via-blue-400 to-purple-500"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}
-        >
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center text-white p-8">
-              <div className="flex justify-center mb-8">
-                <div className="relative">
-                  <div className="w-48 h-48 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                    <div className="flex space-x-4">
-                      {/* Simulación de las tres chicas con gafas */}
-                      <div className="w-12 h-12 bg-white/30 rounded-full flex items-center justify-center">
-                        <div className="w-6 h-3 bg-orange-400 rounded-full"></div>
-                      </div>
-                      <div className="w-12 h-12 bg-white/30 rounded-full flex items-center justify-center">
-                        <div className="w-6 h-3 bg-blue-400 rounded-full"></div>
-                      </div>
-                      <div className="w-12 h-12 bg-white/30 rounded-full flex items-center justify-center">
-                        <div className="w-6 h-3 bg-cyan-400 rounded-full"></div>
-                      </div>
-                    </div>
-                  </div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: notificationStyles }} />
+
+      {/* Componente de Notificación Push */}
+      {notification && (
+        <div className="fixed top-4 right-4 z-[60] max-w-sm w-full">
+          <div
+            className={`
+              slide-in-right relative overflow-hidden rounded-xl shadow-2xl backdrop-blur-sm border
+              transform transition-all duration-500 ease-out
+              ${
+                notification.type === "success"
+                  ? "bg-gradient-to-r from-green-500 to-emerald-600 border-green-400"
+                  : "bg-gradient-to-r from-red-500 to-rose-600 border-red-400"
+              }
+            `}
+          >
+            {/* Barra de progreso */}
+            <div className="progress-bar absolute top-0 left-0 h-1 bg-white bg-opacity-30" />
+
+            <div className="p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  {notification.type === "success" ? (
+                    <Check className="h-6 w-6 text-white" />
+                  ) : (
+                    <AlertTriangle className="h-6 w-6 text-white" />
+                  )}
                 </div>
-              </div>
-              <h2 className="text-2xl font-bold mb-4">¡Únete a nuestra comunidad!</h2>
-              <p className="text-lg opacity-90">Descubre nuevas tendencias y conecta con otros usuarios</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Formulario de registro */}
-      <div className="flex-1 bg-white flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Registrarme</h1>
-            <p className="text-gray-600">Regístrese gratis para acceder a cualquiera de nuestros productos</p>
-          </div>
-
-          {/* Botón de Google */}
-          <button className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg mb-6 hover:bg-gray-50 transition-colors">
-            <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            <span className="text-gray-700 font-medium">Continuar con Google</span>
-          </button>
-
-          <div className="space-y-2">
-            {/* Campo de correo electrónico */}
-            <div className="mb-6">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-3">
-                Correo electrónico
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-4 text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-full focus:border-purple-500 focus:outline-none focus:ring-0 focus:bg-white transition-colors"
-                  placeholder="designer@gmail.com"
-                />
-              </div>
-              {emailError && (
-                <p className="mt-2 text-sm text-red-500">{emailError}</p>
-              )}
-            </div>
-
-            {/* Campo de contraseña */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Contraseña
-                </label>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-semibold text-white">
+                    {notification.title}
+                  </p>
+                  <p className="mt-1 text-sm text-white text-opacity-90">
+                    {notification.message}
+                  </p>
+                </div>
                 <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="text-sm text-gray-500 hover:text-gray-700 flex items-center"
+                  onClick={() => setNotification(null)}
+                  className="ml-4 flex-shrink-0 text-white hover:text-gray-200 transition-colors"
                 >
-                  {showPassword ? <EyeOff size={16} className="mr-1" /> : <Eye size={16} className="mr-1" />}
-                  {showPassword ? 'Ocultar' : 'Mostrar'}
+                  <X className="h-5 w-5" />
                 </button>
               </div>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-4 text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-full focus:border-purple-500 focus:outline-none focus:ring-0 focus:bg-white transition-colors"
-                  placeholder="Contraseña"
-                />
+            </div>
+
+            {/* Efectos de brillo */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-10 transform skew-x-12 -translate-x-full animate-pulse" />
+          </div>
+        </div>
+      )}
+
+      <div className="modal-slide-in fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-in fade-in duration-300">
+          <div className="flex h-full max-h-[700px]">
+            {/* Imagen lateral */}
+            <div className="hidden md:flex md:w-1/2 relative rounded-l-2xl overflow-hidden">
+              <img
+                src="/images/cositas2.jpg"
+                alt="Cositas"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Formulario de registro */}
+            <div className="relative flex-1 bg-white flex flex-col">
+              {/* Header con botón de cerrar */}
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 z-10 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div>
+                  <h1 className="text-2xl pb-3 font-bold text-gray-900">
+                    Registrarme
+                  </h1>
+                  <p className="text-sm text-gray-600">
+                    Regístrese gratis para acceder y comprar productos únicos.
+                  </p>
+                </div>
               </div>
-              <p className="mt-2 text-sm text-gray-500">
-                Utilice 8 o más caracteres con una mezcla de letras, números y símbolos
-              </p>
+
+              {/* Contenido del formulario */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {/* Error general */}
+                {errors.general && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{errors.general}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Nombre y Apellido en una fila */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="first_name"
+                        className="block text-sm font-medium text-gray-700 mb-2 text-left"
+                      >
+                        Nombre *
+                      </label>
+                      <input
+                        type="text"
+                        id="first_name"
+                        value={formData.first_name}
+                        onChange={(e) =>
+                          handleInputChange("first_name", e.target.value)
+                        }
+                        className="w-full px-4 py-3 text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-full focus:border-blue-500 focus:outline-none focus:ring-0 focus:bg-white transition-colors"
+                        placeholder="Tu nombre"
+                      />
+                      {errors.first_name && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.first_name}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="surname"
+                        className="block text-sm font-medium text-gray-700 mb-2 text-left"
+                      >
+                        Apellido *
+                      </label>
+                      <input
+                        type="text"
+                        id="surname"
+                        value={formData.surname}
+                        onChange={(e) =>
+                          handleInputChange("surname", e.target.value)
+                        }
+                        className="w-full px-4 py-3 text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-full focus:border-blue-500 focus:outline-none focus:ring-0 focus:bg-white transition-colors"
+                        placeholder="Tu apellido"
+                      />
+                      {errors.surname && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.surname}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Campo de correo electrónico */}
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700 mb-2 text-left"
+                    >
+                      Correo electrónico *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
+                      className="w-full px-4 py-3 text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-full focus:border-blue-500 focus:outline-none focus:ring-0 focus:bg-white transition-colors"
+                      placeholder="cositas@gmail.com"
+                    />
+                    {errors.email && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Tipo de documento y número */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="document_type_id"
+                        className="block text-sm font-medium text-gray-700 mb-2 text-left"
+                      >
+                        Tipo de documento *
+                      </label>
+                      <select
+                        id="document_type_id"
+                        value={formData.document_type_id}
+                        onChange={(e) =>
+                          handleInputChange("document_type_id", e.target.value)
+                        }
+                        className="w-full px-4 py-3 text-gray-900 bg-gray-50 border border-gray-200 rounded-full focus:border-blue-500 focus:outline-none focus:ring-0 focus:bg-white transition-colors"
+                      >
+                        <option value="">Seleccionar...</option>
+                        {documentTypes.map((type) => (
+                          <option key={type.id} value={type.id}>
+                            {type.name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.document_type_id && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.document_type_id}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="document_number"
+                        className="block text-sm font-medium text-gray-700 mb-2 text-left"
+                      >
+                        Número de documento *
+                      </label>
+                      <input
+                        type="text"
+                        id="document_number"
+                        value={formData.document_number}
+                        onChange={(e) =>
+                          handleInputChange("document_number", e.target.value)
+                        }
+                        className="w-full px-4 py-3 text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-full focus:border-blue-500 focus:outline-none focus:ring-0 focus:bg-white transition-colors"
+                        placeholder="123456789"
+                      />
+                      {errors.document_number && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.document_number}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Campo de contraseña */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label
+                        htmlFor="password"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Contraseña *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={togglePasswordVisibility}
+                        className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
+                      >
+                        {showPassword ? (
+                          <EyeOff size={14} className="mr-1" />
+                        ) : (
+                          <Eye size={14} className="mr-1" />
+                        )}
+                        {showPassword ? "Ocultar" : "Mostrar"}
+                      </button>
+                    </div>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      value={formData.password}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
+                      className="w-full px-4 py-3 text-gray-900 placeholder-gray-400 bg-gray-50 border border-gray-200 rounded-full focus:border-blue-500 focus:outline-none focus:ring-0 focus:bg-white transition-colors"
+                      placeholder="Contraseña"
+                    />
+                    {errors.password && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {errors.password}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-gray-500">
+                      Utilice 8 o más caracteres con una mezcla de letras,
+                      números y símbolos
+                    </p>
+                  </div>
+
+                  {/* Checkboxes */}
+                  <div className="space-y-3">
+                    <label className="flex items-start">
+                      <input
+                        type="checkbox"
+                        checked={acceptTerms}
+                        onChange={(e) => setAcceptTerms(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="ml-3 text-sm text-gray-700 text-left">
+                        Acepta nuestras{" "}
+                        <a
+                          href="#"
+                          className="text-blue-600 underline hover:text-blue-800"
+                        >
+                          Condiciones de uso
+                        </a>{" "}
+                        y{" "}
+                        <a
+                          href="#"
+                          className="text-blue-600 underline hover:text-blue-800"
+                        >
+                          Política de privacidad
+                        </a>
+                      </span>
+                    </label>
+                    {errors.terms && (
+                      <p className="text-xs text-red-500 ml-7">
+                        {errors.terms}
+                      </p>
+                    )}
+
+                    <label className="flex items-start">
+                      <input
+                        type="checkbox"
+                        checked={subscribeNewsletter}
+                        onChange={(e) =>
+                          setSubscribeNewsletter(e.target.checked)
+                        }
+                        className="mt-0.5 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">
+                        Suscríbase a nuestro boletín mensual
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Botón de registro */}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-full font-medium hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isLoading ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Registrando...
+                      </>
+                    ) : (
+                      "Registrarme"
+                    )}
+                  </button>
+
+                  {/* Link de inicio de sesión */}
+                  <p className="text-center text-sm text-gray-600">
+                    ¿Ya tienes una cuenta?{" "}
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="text-blue-600 hover:text-blue-800 font-medium hover:underline cursor-pointer"
+                    >
+                      Inicia sesión
+                    </button>
+                  </p>
+                </form>
+              </div>
             </div>
-
-            {/* Checkboxes */}
-            <div className="space-y-3">
-              <label className="flex items-start">
-                <input
-                  type="checkbox"
-                  checked={acceptTerms}
-                  onChange={(e) => setAcceptTerms(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                />
-                <span className="ml-3 text-sm text-gray-700">
-                  Acepta nuestras{' '}
-                  <a href="#" className="text-purple-600 underline hover:text-purple-800">
-                    Condiciones de uso
-                  </a>{' '}
-                  y{' '}
-                  <a href="#" className="text-purple-600 underline hover:text-purple-800">
-                    Política de privacidad
-                  </a>
-                </span>
-              </label>
-
-              <label className="flex items-start">
-                <input
-                  type="checkbox"
-                  checked={subscribeNewsletter}
-                  onChange={(e) => setSubscribeNewsletter(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                />
-                <span className="ml-3 text-sm text-gray-700">
-                  Suscríbase a nuestro boletín mensual
-                </span>
-              </label>
-            </div>
-
-            {/* Botón de registro */}
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-700 transition-colors focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-            >
-              Registrarme
-            </button>
-
-            {/* Link de inicio de sesión */}
-            <p className="text-center text-sm text-gray-600">
-              ¿Ya tienes una cuenta?{' '}
-              <a href="/login" className="text-purple-600 hover:text-purple-800 font-medium">
-                Inicia sesión
-              </a>
-            </p>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
