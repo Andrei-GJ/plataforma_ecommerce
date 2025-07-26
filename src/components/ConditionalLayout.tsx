@@ -2,6 +2,8 @@
 import { usePathname } from "next/navigation";
 import Header from "./Header";
 import Footer from "./Footer";
+import Cart from "./Cart";
+import { CartProvider } from "@/context/CartContext";
 
 export default function ConditionalLayout({
   children,
@@ -16,14 +18,20 @@ export default function ConditionalLayout({
   ].includes(pathname);
 
   if (hideHeaderFooter) {
-    return <>{children}</>;
+    return (
+      <CartProvider>
+        {children}
+        <Cart />
+      </CartProvider>
+    );
   }
 
   return (
-    <>
+    <CartProvider>
       <Header />
       {children}
       <Footer />
-    </>
+      <Cart />
+    </CartProvider>
   );
 }

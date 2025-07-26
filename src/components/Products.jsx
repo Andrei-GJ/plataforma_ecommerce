@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Heart, ChevronDown, ChevronRight, ShoppingCart } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useCart } from "@/context/CartContext";
 
 const MiscellaneousStoreInterface = () => {
   const [loading, setLoading] = useState(true);
@@ -15,6 +16,38 @@ const MiscellaneousStoreInterface = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const category_id = searchParams.get("category_id");
+  
+  const { addToCart } = useCart();
+
+  // Función para generar imagen placeholder basada en el producto
+  const getProductImage = (product) => {
+    const productName = product.name_product.toLowerCase();
+    const size = "300x200";
+    
+    // Detectar tipo de producto y asignar imagen apropiada
+    if (productName.includes('cuaderno') || productName.includes('papel') || productName.includes('lápiz') || productName.includes('borrador') || productName.includes('colores') || productName.includes('regla') || productName.includes('carpeta') || productName.includes('tajalápiz')) {
+      return `https://via.placeholder.com/${size}/FCD34D/FFFFFF?text=📚+${encodeURIComponent(product.name_product.slice(0, 10))}`;
+    } else if (productName.includes('piñata') || productName.includes('sorpresa') || productName.includes('confeti') || productName.includes('globos') || productName.includes('serpentina') || productName.includes('velas') || productName.includes('adornos')) {
+      return `https://via.placeholder.com/${size}/EC4899/FFFFFF?text=🎉+${encodeURIComponent(product.name_product.slice(0, 10))}`;
+    } else if (productName.includes('muñeca') || productName.includes('carro') || productName.includes('juego') || productName.includes('bloques') || productName.includes('pelota') || productName.includes('rompecabezas') || productName.includes('figuras')) {
+      return `https://via.placeholder.com/${size}/10B981/FFFFFF?text=🧸+${encodeURIComponent(product.name_product.slice(0, 10))}`;
+    } else if (productName.includes('termo') || productName.includes('acero') || productName.includes('infantil') || productName.includes('diseño') || productName.includes('mini') || productName.includes('deportivo') || productName.includes('vidrio')) {
+      return `https://via.placeholder.com/${size}/3B82F6/FFFFFF?text=🍴+${encodeURIComponent(product.name_product.slice(0, 10))}`;
+    } else {
+      return `https://via.placeholder.com/${size}/6B7280/FFFFFF?text=📦+${encodeURIComponent(product.name_product.slice(0, 10))}`;
+    }
+  };
+
+  const handleAddToCart = (product) => {
+    const cartItem = {
+      id: product.id,
+      name: product.name_product,
+      price: product.price,
+      category: categories.find((c) => c.id === product.category_id)?.name || "Sin categoría",
+      image: getProductImage(product)
+    };
+    addToCart(cartItem);
+  };
 
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
@@ -192,19 +225,42 @@ const MiscellaneousStoreInterface = () => {
                 key={product.id}
                 className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow border"
               >
-                <div className="relative bg-gray-100 h-56 flex items-center justify-center">
-                  <button className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-sm hover:shadow-md">
+                <div className="relative bg-gray-100 h-56 overflow-hidden">
+                  <button className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-sm hover:shadow-md z-10">
                     <Heart size={16} className="text-gray-400 hover:text-red-500" />
                   </button>
-                  <div className="w-28 h-28 bg-gray-300 rounded-lg flex items-center justify-center">
-                    <span className="text-gray-600 text-xs text-center">
-                      Imagen
-                      <br />
-                      Producto
-                    </span>
+                  
+                  {/* Imagen del producto */}
+                  <img 
+                    src={getProductImage(product)}
+                    alt={product.name_product}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback si la imagen no carga
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  
+                  {/* Fallback emoji cuando la imagen no carga */}
+                  <div className="w-full h-full bg-gradient-to-br from-amber-50 to-amber-100 items-center justify-center" style={{ display: 'none' }}>
+                    <div className="text-center">
+                      <div className="w-20 h-20 mx-auto mb-2 bg-amber-200 rounded-full flex items-center justify-center">
+                        <span className="text-2xl">
+                          {product.category_id === 1 ? "📚" : 
+                           product.category_id === 2 ? "🎉" : 
+                           product.category_id === 3 ? "🧸" : 
+                           product.category_id === 4 ? "🍴" : "📦"}
+                        </span>
+                      </div>
+                      <span className="text-xs text-amber-700 font-medium">
+                        {categories.find((c) => c.id === product.category_id)?.name || "Producto"}
+                      </span>
+                    </div>
                   </div>
+                  
                   <div
-                    className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs ${
+                    className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium ${
                       categoryColorClasses[product.category_id] ||
                       "bg-gray-100 text-gray-600"
                     }`}
@@ -217,10 +273,14 @@ const MiscellaneousStoreInterface = () => {
                     {product.name_product}
                   </h3>
                   <div className="flex items-center justify-between">
-                    <p className="text-md font-bold text-blue-600 tracking-wide">
+                    <p className="text-md font-bold text-amber-600 tracking-wide">
                       ${product.price.toFixed(0)}
                     </p>
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-colors">
+                    <button 
+                      onClick={() => handleAddToCart(product)}
+                      className="bg-amber-500 hover:bg-amber-600 text-white p-2 rounded-full transition-colors hover:scale-105 transform shadow-md"
+                      title="Agregar al carrito"
+                    >
                       <ShoppingCart size={16} />
                     </button>
                   </div>

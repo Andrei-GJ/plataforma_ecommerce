@@ -164,16 +164,6 @@ const Header = () => {
             )}
 
             <FloatingLogin isOpen={showLogin} onClose={onCloseLogin} />
-
-            <Link href="/cart" className="flex items-center space-x-2 text-gray-700 relative">
-              <div className="relative">
-                <ShoppingBag className="w-5 h-5" />
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                  0
-                </span>
-              </div>
-              <span className="font-medium text-sm">Carrito</span>
-            </Link>
           </div>
         </div>
       </div>
